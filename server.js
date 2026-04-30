@@ -7,24 +7,28 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
 
-// 🔥 MongoDB connect (safe)
-mongoose.connect("mongodb+srv://ownerrohiy_db_user:AQz30SNAvf6dJaPQ@cluster0.hx4m2ww.mongodb.net/adminpanel?retryWrites=true&w=majority")
-.then(() => console.log("MongoDB Connected"))
-.catch(err => {
-  console.log("MongoDB Error:", err.message);
+// 🔥 static fix (IMPORTANT)
+app.use(express.static(__dirname));
+
+// 🔥 root route fix
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-// 🔑 storage
-let keys = [];
+// 🔥 MongoDB
+mongoose.connect("mongodb+srv://ownerrohiy_db_user:AQz30SNAvf6dJaPQ@cluster0.hx4m2ww.mongodb.net/adminpanel?retryWrites=true&w=majority")
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log(err));
 
-// home
-app.get("/", (req, res) => {
-  res.send("Server chal raha hai");
+// test route
+app.get("/test", (req, res) => {
+  res.send("Server working ✅");
 });
 
 // verify
+let keys = [];
+
 app.post("/verify", (req, res) => {
   let { key } = req.body;
   key = key.trim().toUpperCase();
@@ -39,9 +43,8 @@ app.post("/verify", (req, res) => {
   res.json({ status: "active" });
 });
 
-// 🔥 PORT FIX (IMPORTANT)
+// PORT
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
 });
