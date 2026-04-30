@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 // 🔥 MongoDB connect
-mongoose.connect("mongodb://127.0.0.1:27017/adminpanel");
+mongoose.connect("mongodb+srv://ownerrohiy_db_user:AQz30SNAvf6dJaPQ@cluster0.hx4m2ww.mongodb.net/adminpanel");
 
 // 🔥 Schema
 const Key = mongoose.model("Key", {
