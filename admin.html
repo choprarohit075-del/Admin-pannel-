@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pro Admin Panel</title>
+</head>
+<body>
+
+<script>
+let pass = prompt("Enter Admin Password");
+if(pass !== "12345"){
+  document.body.innerHTML = "<h2>Access Denied</h2>";
+}
+</script>
+
+<h2>Pro Admin Panel</h2>
+
+<input type="text" id="key" placeholder="Enter Key">
+<input type="number" id="days" placeholder="Days">
+
+<br><br>
+
+<button onclick="addKey()">Add Key</button>
+<button onclick="checkKey()">Check Key</button>
+<button onclick="showKeys()">Show All Keys</button>
+
+<pre id="output"></pre>
+
+<script>
+
+const URL = "http://127.0.0.1:3000";
+
+// 🔥 ADD KEY
+function addKey(){
+  fetch(URL + "/add-key", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      days: Number(document.getElementById("days").value)
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    console.log(data);
+    alert("New Key: " + data.key);
+  })
+  .catch(err => {
+    alert("Error: " + err);
+  });
+}
+
+// 🔥 CHECK KEY
+function checkKey(){
+  fetch(URL + "/verify", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      key: document.getElementById("key").value
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert("Status: " + data.status);
+  });
+}
+
+// 🔥 SHOW ALL KEYS
+function showKeys(){
+  fetch(URL + "/keys")
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+  });
+}
+
+</script>
+
+</body>
+</html>
