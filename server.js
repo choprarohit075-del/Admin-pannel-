@@ -8,34 +8,32 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ static files serve
+// ✅ Static files serve
 app.use(express.static(path.join(__dirname)));
 
-// ✅ ROOT FIX (important)
+// ✅ Root route
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-// ✅ fallback (Render fix)
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "admin.html"));
-});
-
-// ✅ MongoDB connection (Atlas)
-mongoose.connect(mongodb+srv://adminuser:Admin%4012345@cluster0.hx4m2ww.mongodb.net/adminpanel?retryWrites=true&w=majority
-.then(() => console.log("MongoDB Connected"))
-.catch(err => console.log(err));
-
-// ✅ test route
+// ✅ Test route
 app.get("/test", (req, res) => {
   res.send("Server working ✅");
 });
 
-// ✅ dummy key system
+// ✅ MongoDB Connection (FIXED)
+mongoose.connect("mongodb+srv://adminuser:Admin%4012345@cluster0.hx4m2ww.mongodb.net/adminpanel?retryWrites=true&w=majority")
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
+
+// 🔑 Dummy key system
 let keys = [];
 
 app.post("/verify", (req, res) => {
   let { key } = req.body;
+
+  if (!key) return res.json({ status: "blocked" });
+
   key = key.trim().toUpperCase();
 
   let found = keys.find(k => k.key === key);
@@ -48,8 +46,14 @@ app.post("/verify", (req, res) => {
   res.json({ status: "active" });
 });
 
+// ❗ Fallback route (Not Found fix)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "admin.html"));
+});
+
 // ✅ PORT (Render compatible)
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
 });
