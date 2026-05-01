@@ -22,17 +22,17 @@ const keySchema = new mongoose.Schema({
 
 const Key = mongoose.model("Key", keySchema);
 
-// ✅ Home
+// ✅ Home Route
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-// ✅ Test
+// ✅ Test Route
 app.get("/test", (req, res) => {
   res.send("Server working ✅");
 });
 
-// 🔥 Create Key
+// 🔥 CREATE KEY (FINAL WITH REAL ERROR)
 app.post("/create-key", async (req, res) => {
   try {
     let { key, days } = req.body;
@@ -48,7 +48,7 @@ app.post("/create-key", async (req, res) => {
       return res.json({ status: "error", msg: "Invalid days" });
     }
 
-    // 🔥 duplicate check
+    // 🔥 Duplicate check
     let existing = await Key.findOne({ key });
     if (existing) {
       return res.json({ status: "error", msg: "Key already exists" });
@@ -61,12 +61,16 @@ app.post("/create-key", async (req, res) => {
     res.json({ status: "created", key, expiry });
 
   } catch (err) {
-    console.log("ERROR:", err);
-    res.json({ status: "error", msg: "Server error" });
+    console.log("❌ REAL ERROR:", err);
+
+    res.json({
+      status: "error",
+      msg: err.message   // 👈 अब exact error दिखेगा
+    });
   }
 });
 
-// 🔑 Verify
+// 🔑 VERIFY KEY
 app.post("/verify", async (req, res) => {
   try {
     let { key } = req.body;
@@ -89,11 +93,12 @@ app.post("/verify", async (req, res) => {
   }
 });
 
-// ❗ fallback
+// ❗ fallback (IMPORTANT for Render)
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
+// ✅ PORT
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
