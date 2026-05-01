@@ -1,36 +1,46 @@
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
 const path = require("path");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-
-// static files
 app.use(express.static(__dirname));
+
+// ✅ MongoDB connect
+mongoose.connect("mongodb+srv://adminuser:Admin%4012345@cluster0.hx4m2ww.mongodb.net/adminpanel?retryWrites=true&w=majority")
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log(err));
+
+// ✅ Schema
+const keySchema = new mongoose.Schema({
+  key: String,
+  expiry: Number
+});
+
+const Key = mongoose.model("Key", keySchema);
 
 // root
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-// test route
+// test
 app.get("/test", (req, res) => {
   res.send("Server working ✅");
 });
 
-// dummy verify
-let keys = [];
-
-app.post("/verify", (req, res) => {
+// verify
+app.post("/verify", async (req, res) => {
   let { key } = req.body;
 
   if (!key) return res.json({ status: "blocked" });
 
   key = key.trim().toUpperCase();
 
-  let found = keys.find(k => k.key === key);
+  let found = await Key.findOne({ key });
 
   if (!found) return res.json({ status: "blocked" });
 
