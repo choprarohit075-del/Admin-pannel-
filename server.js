@@ -8,61 +8,48 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ STATIC FILES (correct path)
+// ✅ static files serve
 app.use(express.static(path.join(__dirname)));
 
-// ✅ ROOT → admin.html open करेगा
+// ✅ ROOT FIX (important)
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-// ✅ TEST ROUTE (check working)
+// ✅ fallback (Render fix)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "admin.html"));
+});
+
+// ✅ MongoDB connection (Atlas)
+mongoose.connect("mongodb+srv://ownerrohiy_db_user:AQz30SNAvf6dJaPQ@cluster0.hx4m2ww.mongodb.net/adminpanel?retryWrites=true&w=majority")
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log(err));
+
+// ✅ test route
 app.get("/test", (req, res) => {
   res.send("Server working ✅");
 });
 
-// ✅ MongoDB (safe connect)
-mongoose.connect("mongodb+srv://ownerrohiy_db_user:AQz30SNAvf6dJaPQ@cluster0.hx4m2ww.mongodb.net/adminpanel?retryWrites=true&w=majority")
-.then(() => console.log("MongoDB Connected"))
-.catch(err => {
-  console.log("MongoDB Error:", err.message);
-});
-
-// 🔑 temporary storage
+// ✅ dummy key system
 let keys = [];
 
-// ✅ VERIFY API
 app.post("/verify", (req, res) => {
-  try {
-    let { key } = req.body;
+  let { key } = req.body;
+  key = key.trim().toUpperCase();
 
-    if (!key) return res.json({ status: "blocked" });
+  let found = keys.find(k => k.key === key);
 
-    key = key.trim().toUpperCase();
+  if (!found) return res.json({ status: "blocked" });
 
-    let found = keys.find(k => k.key === key);
+  if (Date.now() > found.expiry)
+    return res.json({ status: "expired" });
 
-    if (!found) return res.json({ status: "blocked" });
-
-    if (Date.now() > found.expiry) {
-      return res.json({ status: "expired" });
-    }
-
-    res.json({ status: "active" });
-
-  } catch (err) {
-    res.json({ status: "error" });
-  }
+  res.json({ status: "active" });
 });
 
-// ❗ 404 HANDLE (IMPORTANT FIX)
-app.use((req, res) => {
-  res.status(404).send("Page Not Found ❌");
-});
-
-// ✅ PORT FIX
+// ✅ PORT (Render compatible)
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
 });
