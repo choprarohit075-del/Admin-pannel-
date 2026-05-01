@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// ✅ MongoDB Connection
+// ✅ MongoDB Connect
 mongoose.connect("mongodb+srv://adminuser:Admin%4012345@cluster0.hx4m2ww.mongodb.net/adminpanel?retryWrites=true&w=majority")
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.log(err));
@@ -22,17 +22,17 @@ const keySchema = new mongoose.Schema({
 
 const Key = mongoose.model("Key", keySchema);
 
-// ✅ Home Route
+// ✅ Home
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-// ✅ Test Route
+// ✅ Test
 app.get("/test", (req, res) => {
   res.send("Server working ✅");
 });
 
-// 🔥 Create Key API
+// 🔥 Create Key (FIXED)
 app.post("/create-key", async (req, res) => {
   let { key, days } = req.body;
 
@@ -41,19 +41,20 @@ app.post("/create-key", async (req, res) => {
   }
 
   key = key.trim().toUpperCase();
+  days = parseInt(days);
+
+  if (isNaN(days)) {
+    return res.json({ status: "error", msg: "Invalid days" });
+  }
 
   let expiry = Date.now() + days * 24 * 60 * 60 * 1000;
 
   await Key.create({ key, expiry });
 
-  res.json({
-    status: "created",
-    key,
-    expiry
-  });
+  res.json({ status: "created", key, expiry });
 });
 
-// 🔑 Verify Key API
+// 🔑 Verify Key
 app.post("/verify", async (req, res) => {
   let { key } = req.body;
 
@@ -71,12 +72,11 @@ app.post("/verify", async (req, res) => {
   res.json({ status: "active" });
 });
 
-// ❗ Fallback (fix Not Found)
+// ❗ fallback
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-// ✅ PORT
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
