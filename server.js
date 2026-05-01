@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const mongoose = require("mongoose");
 const path = require("path");
 
 const app = express();
@@ -8,25 +7,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Static files serve
-app.use(express.static(path.join(__dirname)));
+// static files
+app.use(express.static(__dirname));
 
-// ✅ Root route
+// root
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-// ✅ Test route
+// test route
 app.get("/test", (req, res) => {
   res.send("Server working ✅");
 });
 
-// ✅ MongoDB Connection (FIXED)
-mongoose.connect("mongodb+srv://adminuser:Admin%4012345@cluster0.hx4m2ww.mongodb.net/adminpanel?retryWrites=true&w=majority")
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
-
-// 🔑 Dummy key system
+// dummy verify
 let keys = [];
 
 app.post("/verify", (req, res) => {
@@ -46,12 +40,11 @@ app.post("/verify", (req, res) => {
   res.json({ status: "active" });
 });
 
-// ❗ Fallback route (Not Found fix)
+// fallback
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-// ✅ PORT (Render compatible)
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
