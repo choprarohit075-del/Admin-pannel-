@@ -1,78 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pro Admin Panel</title>
+  <title>Admin Panel</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #111;
+      color: #fff;
+      text-align: center;
+      padding: 50px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      border: none;
+      border-radius: 5px;
+    }
+    input {
+      width: 200px;
+    }
+    button {
+      background: #00ff99;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .box {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      display: inline-block;
+    }
+  </style>
 </head>
+
 <body>
 
-<script>
-let pass = prompt("Enter Admin Password");
-if(pass !== "12345"){
-  document.body.innerHTML = "<h2>Access Denied</h2>";
-}
-</script>
+  <h1>🔥 Admin Panel</h1>
 
-<h2>Pro Admin Panel</h2>
+  <div class="box">
+    <h3>Create Key</h3>
 
-<input type="text" id="key" placeholder="Enter Key">
-<input type="number" id="days" placeholder="Days">
+    <input type="text" id="key" placeholder="Enter Key"><br>
+    <input type="number" id="days" placeholder="Days"><br>
 
-<br><br>
+    <button onclick="createKey()">Create Key</button>
 
-<button onclick="addKey()">Add Key</button>
-<button onclick="checkKey()">Check Key</button>
-<button onclick="showKeys()">Show All Keys</button>
+    <p id="result"></p>
+  </div>
 
-<pre id="output"></pre>
+  <script>
+    async function createKey() {
+      let key = document.getElementById("key").value;
+      let days = document.getElementById("days").value;
 
-<script>
+      let res = await fetch("/create-key", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ key, days })
+      });
 
-const URL = "http://127.0.0.1:3000";
+      let data = await res.json();
 
-// 🔥 ADD KEY
-function addKey(){
-  fetch(URL + "/add-key", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      days: Number(document.getElementById("days").value)
-    })
-  })
-  .then(res => res.json())
-  .then(data => {
-    console.log(data);
-    alert("New Key: " + data.key);
-  })
-  .catch(err => {
-    alert("Error: " + err);
-  });
-}
-
-// 🔥 CHECK KEY
-function checkKey(){
-  fetch(URL + "/verify", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      key: document.getElementById("key").value
-    })
-  })
-  .then(res => res.json())
-  .then(data => {
-    alert("Status: " + data.status);
-  });
-}
-
-// 🔥 SHOW ALL KEYS
-function showKeys(){
-  fetch(URL + "/keys")
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById("output").innerText = JSON.stringify(data, null, 2);
-  });
-}
-
-</script>
+      if (data.status === "created") {
+        document.getElementById("result").innerText =
+          "✅ Key Created: " + data.key;
+      } else {
+        document.getElementById("result").innerText =
+          "❌ Error";
+      }
+    }
+  </script>
 
 </body>
 </html>
