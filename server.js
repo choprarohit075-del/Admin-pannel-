@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// ✅ MongoDB connect
+// ✅ MongoDB Connection
 mongoose.connect("mongodb+srv://adminuser:Admin%4012345@cluster0.hx4m2ww.mongodb.net/adminpanel?retryWrites=true&w=majority")
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.log(err));
@@ -22,17 +22,38 @@ const keySchema = new mongoose.Schema({
 
 const Key = mongoose.model("Key", keySchema);
 
-// root
+// ✅ Home Route
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-// test
+// ✅ Test Route
 app.get("/test", (req, res) => {
   res.send("Server working ✅");
 });
 
-// verify
+// 🔥 Create Key API
+app.post("/create-key", async (req, res) => {
+  let { key, days } = req.body;
+
+  if (!key || !days) {
+    return res.json({ status: "error", msg: "Missing data" });
+  }
+
+  key = key.trim().toUpperCase();
+
+  let expiry = Date.now() + days * 24 * 60 * 60 * 1000;
+
+  await Key.create({ key, expiry });
+
+  res.json({
+    status: "created",
+    key,
+    expiry
+  });
+});
+
+// 🔑 Verify Key API
 app.post("/verify", async (req, res) => {
   let { key } = req.body;
 
@@ -50,11 +71,12 @@ app.post("/verify", async (req, res) => {
   res.json({ status: "active" });
 });
 
-// fallback
+// ❗ Fallback (fix Not Found)
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
+// ✅ PORT
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
