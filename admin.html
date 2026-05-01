@@ -2,87 +2,50 @@
 <html>
 <head>
   <title>Admin Panel</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #111;
-      color: #fff;
-      text-align: center;
-      padding: 50px;
-    }
-    input, button {
-      padding: 10px;
-      margin: 10px;
-      border: none;
-      border-radius: 5px;
-    }
-    input {
-      width: 220px;
-    }
-    button {
-      background: #00ff99;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .box {
-      background: #222;
-      padding: 25px;
-      border-radius: 10px;
-      display: inline-block;
-    }
-  </style>
 </head>
 
-<body>
+<body style="background:black;color:white;text-align:center;padding:50px;">
 
-  <h1>🔥 Admin Panel</h1>
+<h1>Admin Panel</h1>
 
-  <div class="box">
-    <h3>Create Key</h3>
+<input id="key" placeholder="Enter Key"><br><br>
+<input id="days" placeholder="Days"><br><br>
 
-    <input type="text" id="key" placeholder="Enter Key"><br>
-    <input type="number" id="days" placeholder="Days"><br>
+<button onclick="createKey()">Create Key</button>
 
-    <button onclick="createKey()">Create Key</button>
+<p id="result"></p>
 
-    <p id="result"></p>
-  </div>
+<script>
+async function createKey() {
+  console.log("Button clicked"); // 🔥 debug
 
-  <script>
-    async function createKey() {
-      let key = document.getElementById("key").value;
-      let days = document.getElementById("days").value;
+  let key = document.getElementById("key").value;
+  let days = document.getElementById("days").value;
 
-      if (!key || !days) {
-        document.getElementById("result").innerText = "❌ Fill all fields";
-        return;
-      }
+  console.log(key, days); // 🔥 debug
 
-      try {
-        let res = await fetch("https://admin-pannel-gi9e.onrender.com/create-key", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ key, days })
-        });
+  try {
+    let res = await fetch("/create-key", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ key, days })
+    });
 
-        let data = await res.json();
+    let data = await res.json();
 
-        if (data.status === "created") {
-          document.getElementById("result").innerText =
-            "✅ Key Created: " + data.key;
-        } else {
-          document.getElementById("result").innerText =
-            "❌ Error: " + JSON.stringify(data);
-        }
+    console.log(data); // 🔥 debug
 
-      } catch (err) {
-        document.getElementById("result").innerText =
-          "❌ Server Error (check backend)";
-      }
-    }
-  </script>
+    document.getElementById("result").innerText =
+      JSON.stringify(data);
+
+  } catch (err) {
+    console.log(err);
+    document.getElementById("result").innerText = "Error";
+  }
+}
+</script>
 
 </body>
 </html>
