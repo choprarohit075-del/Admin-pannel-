@@ -17,7 +17,7 @@
       border-radius: 5px;
     }
     input {
-      width: 200px;
+      width: 220px;
     }
     button {
       background: #00ff99;
@@ -26,7 +26,7 @@
     }
     .box {
       background: #222;
-      padding: 20px;
+      padding: 25px;
       border-radius: 10px;
       display: inline-block;
     }
@@ -53,22 +53,33 @@
       let key = document.getElementById("key").value;
       let days = document.getElementById("days").value;
 
-      let res = await fetch("/create-key", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ key, days })
-      });
+      if (!key || !days) {
+        document.getElementById("result").innerText = "❌ Fill all fields";
+        return;
+      }
 
-      let data = await res.json();
+      try {
+        let res = await fetch("https://admin-pannel-gi9e.onrender.com/create-key", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ key, days })
+        });
 
-      if (data.status === "created") {
+        let data = await res.json();
+
+        if (data.status === "created") {
+          document.getElementById("result").innerText =
+            "✅ Key Created: " + data.key;
+        } else {
+          document.getElementById("result").innerText =
+            "❌ Error: " + JSON.stringify(data);
+        }
+
+      } catch (err) {
         document.getElementById("result").innerText =
-          "✅ Key Created: " + data.key;
-      } else {
-        document.getElementById("result").innerText =
-          "❌ Error";
+          "❌ Server Error (check backend)";
       }
     }
   </script>
