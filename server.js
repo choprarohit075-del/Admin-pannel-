@@ -22,7 +22,7 @@ app.get("*", (req, res) => {
 });
 
 // ✅ MongoDB connection (Atlas)
-mongoose.connect("mongodb+srv://ownerrohiy_db_user:AQz30SNAvf6dJaPQ@cluster0.hx4m2ww.mongodb.net/adminpanel?retryWrites=true&w=majority")
+mongoose.connect(mongodb+srv://adminuser:Admin%4012345@cluster0.hx4m2ww.mongodb.net/adminpanel?retryWrites=true&w=majority
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.log(err));
 
