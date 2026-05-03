@@ -10,19 +10,19 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 /* =========================
-   🔥 MongoDB Connection
+   🔥 MongoDB Connection (FINAL FIX)
 ========================= */
 const MONGO_URI = "mongodb+srv://adminuser:Admin%4012345@cluster0.hx4m2ww.mongodb.net/adminpanel?retryWrites=true&w=majority";
 
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000
+// ❌ OLD options hata diye (important)
+mongoose.connect(MONGO_URI)
+.then(() => {
+  console.log("✅ MongoDB Connected Successfully");
 })
-.then(() => console.log("✅ MongoDB Connected"))
 .catch(err => {
-  console.log("❌ MongoDB Error:", err.message);
+  console.log("❌ MongoDB Connection Error:", err.message);
 });
+
 
 /* =========================
    🔑 Schema
@@ -49,7 +49,7 @@ app.get("/test", (req, res) => {
   res.send("Server working ✅");
 });
 
-// Create Key
+// 🔥 Create Key
 app.post("/create-key", async (req, res) => {
   try {
     let { key, days } = req.body;
@@ -82,7 +82,7 @@ app.post("/create-key", async (req, res) => {
     });
 
   } catch (err) {
-    console.log("❌ CREATE ERROR:", err);
+    console.log("❌ CREATE ERROR:", err.message);
 
     res.json({
       status: "error",
@@ -91,7 +91,8 @@ app.post("/create-key", async (req, res) => {
   }
 });
 
-// Verify Key
+
+// 🔑 Verify Key
 app.post("/verify", async (req, res) => {
   try {
     let { key } = req.body;
@@ -104,15 +105,18 @@ app.post("/verify", async (req, res) => {
 
     if (!found) return res.json({ status: "blocked" });
 
-    if (Date.now() > found.expiry)
+    if (Date.now() > found.expiry) {
       return res.json({ status: "expired" });
+    }
 
     res.json({ status: "active" });
 
   } catch (err) {
+    console.log("❌ VERIFY ERROR:", err.message);
     res.json({ status: "error" });
   }
 });
+
 
 // fallback (IMPORTANT for Render)
 app.get("*", (req, res) => {
@@ -123,7 +127,7 @@ app.get("*", (req, res) => {
 /* =========================
    🚀 Server Start
 ========================= */
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
   console.log("🚀 Server running on port " + PORT);
