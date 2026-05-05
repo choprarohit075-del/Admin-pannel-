@@ -12,24 +12,20 @@ app.use(express.static(__dirname));
 /* =========================
    🔥 MongoDB Connection
 ========================= */
-
 const MONGO_URI = "mongodb+srv://adminuser:Admin%4012345@cluster0.hx4m2ww.mongodb.net/adminpanel?retryWrites=true&w=majority";
 
 mongoose.connect(MONGO_URI)
-.then(() => {
-  console.log("✅ MongoDB Connected");
-})
-.catch(err => {
-  console.log("❌ MongoDB Error:", err.message);
-});
+.then(() => console.log("✅ MongoDB Connected"))
+.catch(err => console.log("❌ DB Error:", err.message));
 
 /* =========================
-   🔑 Schema (UPGRADED)
+   🔑 Schema (UPDATED)
 ========================= */
 const keySchema = new mongoose.Schema({
   key: { type: String, unique: true },
   expiry: Number,
-  deviceId: { type: String, default: null } // 🔥 NEW
+  deviceId: { type: String, default: null }, // 🔒 device lock
+  banned: { type: Boolean, default: false } // 🚫 ban system
 });
 
 const Key = mongoose.model("Key", keySchema);
@@ -38,95 +34,88 @@ const Key = mongoose.model("Key", keySchema);
    🌐 Routes
 ========================= */
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "admin.html"));
-});
-
+// TEST
 app.get("/test", (req, res) => {
   res.send("Server working ✅");
 });
 
-/* =========================
-   🔑 CREATE KEY
-========================= */
+// CREATE KEY
 app.post("/create-key", async (req, res) => {
   try {
     let { key, days } = req.body;
 
-    if (!key || !days) {
-      return res.json({ status: "error", msg: "Missing data" });
-    }
-
     key = key.trim().toUpperCase();
     days = parseInt(days);
-
-    if (isNaN(days)) {
-      return res.json({ status: "error", msg: "Invalid days" });
-    }
-
-    const existing = await Key.findOne({ key });
-    if (existing) {
-      return res.json({ status: "error", msg: "Key exists" });
-    }
 
     const expiry = Date.now() + days * 24 * 60 * 60 * 1000;
 
     await Key.create({ key, expiry });
 
-    res.json({ status: "created", key, expiry });
+    res.json({ status: "created", key });
 
   } catch (err) {
-    console.log("❌ CREATE ERROR:", err.message);
     res.json({ status: "error", msg: err.message });
   }
 });
 
-/* =========================
-   🔓 VERIFY KEY (FIXED + UPGRADED)
-========================= */
+// VERIFY (🔥 MAIN LOGIC)
 app.post("/verify", async (req, res) => {
   try {
     let { key, deviceId } = req.body;
 
-    if (!key) return res.json({ status: "blocked" });
+    if (!key || !deviceId) {
+      return res.json({ status: "error" });
+    }
 
     key = key.trim().toUpperCase();
 
     const found = await Key.findOne({ key });
 
-    if (!found) return res.json({ status: "blocked" });
+    if (!found) return res.json({ status: "invalid" });
 
-    // ❌ Expired
+    // 🚫 banned check
+    if (found.banned) {
+      return res.json({ status: "banned" });
+    }
+
+    // ⏳ expiry check
     if (Date.now() > found.expiry) {
       return res.json({ status: "expired" });
     }
 
-    // 🔒 Device lock (1 key = 1 device)
+    // 🔒 device lock logic
     if (!found.deviceId) {
+      // first time login → bind device
       found.deviceId = deviceId;
       await found.save();
     } else if (found.deviceId !== deviceId) {
-      return res.json({ status: "blocked" });
+      return res.json({ status: "device_mismatch" });
     }
 
-    // ✅ FINAL RESPONSE (IMPORTANT)
     res.json({
       status: "active",
       expiry: found.expiry
     });
 
   } catch (err) {
-    console.log("❌ VERIFY ERROR:", err.message);
     res.json({ status: "error" });
   }
 });
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "admin.html"));
+// 🚫 BAN KEY (ADMIN)
+app.post("/ban-key", async (req, res) => {
+  const { key } = req.body;
+
+  await Key.updateOne(
+    { key: key.toUpperCase() },
+    { banned: true }
+  );
+
+  res.json({ status: "banned_done" });
 });
 
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
-  console.log("🚀 Server running on port " + PORT);
+  console.log("🚀 Server running");
 });
