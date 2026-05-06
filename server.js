@@ -7,16 +7,31 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-
-// 🔥 IMPORTANT (admin.html show karne ke liye)
 app.use(express.static(__dirname));
 
-/* DB */
+/* =========================
+   🔐 ADMIN PASSWORD
+========================= */
+const ADMIN_PASS = "RohitPalak@2005";
+
+function checkAuth(req, res, next) {
+  const pass = req.headers["x-admin-pass"];
+  if (pass !== ADMIN_PASS) {
+    return res.status(401).send("Unauthorized ❌");
+  }
+  next();
+}
+
+/* =========================
+   🔥 DB CONNECT
+========================= */
 mongoose.connect("mongodb+srv://adminuser:Admin%4012345@cluster0.hx4m2ww.mongodb.net/adminpanel")
 .then(() => console.log("✅ MongoDB Connected"))
 .catch(err => console.log("❌ DB Error:", err));
 
-/* Schema */
+/* =========================
+   📦 SCHEMA
+========================= */
 const keySchema = new mongoose.Schema({
   key: String,
   expiry: Number,
@@ -26,16 +41,16 @@ const keySchema = new mongoose.Schema({
 
 const Key = mongoose.model("Key", keySchema);
 
-/* ======================
-   🌐 HOME (ADMIN PANEL)
-====================== */
+/* =========================
+   🌐 ADMIN PANEL
+========================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-/* ======================
+/* =========================
    🔓 VERIFY
-====================== */
+========================= */
 app.post("/verify", async (req, res) => {
   try {
     let { key, deviceId } = req.body;
@@ -63,10 +78,10 @@ app.post("/verify", async (req, res) => {
   }
 });
 
-/* ======================
-   🔑 CREATE KEY
-====================== */
-app.post("/create", async (req, res) => {
+/* =========================
+   🔑 CREATE KEY (PROTECTED)
+========================= */
+app.post("/create", checkAuth, async (req, res) => {
   try {
     let { key, days } = req.body;
 
@@ -81,40 +96,51 @@ app.post("/create", async (req, res) => {
   }
 });
 
-/* ======================
-   🚫 BAN
-====================== */
-app.post("/ban", async (req, res) => {
+/* =========================
+   🚫 BAN (PROTECTED)
+========================= */
+app.post("/ban", checkAuth, async (req, res) => {
   await Key.updateOne({ key: req.body.key }, { banned: true });
   res.json({ status: "banned" });
 });
 
-/* ======================
-   ✅ UNBAN
-====================== */
-app.post("/unban", async (req, res) => {
+/* =========================
+   ✅ UNBAN (PROTECTED)
+========================= */
+app.post("/unban", checkAuth, async (req, res) => {
   await Key.updateOne({ key: req.body.key }, { banned: false });
   res.json({ status: "unbanned" });
 });
 
-/* ======================
-   📊 ALL KEYS
-====================== */
-app.get("/keys", async (req, res) => {
+/* =========================
+   📊 ALL KEYS (PROTECTED)
+========================= */
+app.get("/keys", checkAuth, async (req, res) => {
   const data = await Key.find();
   res.json(data);
 });
 
-/* ======================
-   🧪 TEST ROUTE
-====================== */
+/* =========================
+   📈 STATS (PROTECTED)
+========================= */
+app.get("/stats", checkAuth, async (req, res) => {
+  const total = await Key.countDocuments();
+  const active = await Key.countDocuments({ banned: false });
+  const banned = await Key.countDocuments({ banned: true });
+
+  res.json({ total, active, banned });
+});
+
+/* =========================
+   🧪 TEST
+========================= */
 app.get("/test", (req, res) => {
   res.send("Server working ✅");
 });
 
-/* ======================
-   🚀 START SERVER (FIXED)
-====================== */
+/* =========================
+   🚀 START SERVER
+========================= */
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
