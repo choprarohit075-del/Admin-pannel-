@@ -2,68 +2,145 @@
 <html>
 <head>
   <title>ROHIT OWNER PANEL 🔥</title>
+  <style>
+    body {
+      background: #0d0d0d;
+      color: white;
+      font-family: Arial;
+      text-align: center;
+    }
+
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    button {
+      background: #00c3ff;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #00ffcc;
+    }
+
+    pre {
+      text-align: left;
+      background: #111;
+      padding: 10px;
+      border-radius: 10px;
+      overflow: auto;
+      max-height: 300px;
+    }
+  </style>
 </head>
-<body style="background:black;color:white;font-family:sans-serif">
+
+<body>
 
 <h2>🔥 ROHIT OWNER ADMIN PANEL</h2>
 
-<input id="key" placeholder="Enter key">
+<!-- 🔐 PASSWORD -->
+<input id="pass" placeholder="Admin Password">
+
+<br><br>
+
+<!-- 🔑 CREATE KEY -->
+<input id="key" placeholder="Enter Key">
 <input id="days" placeholder="Days">
 <button onclick="createKey()">Create Key</button>
 
 <br><br>
 
-<input id="banKey" placeholder="Key to ban">
+<!-- 🚫 BAN / UNBAN -->
+<input id="banKey" placeholder="Key to ban/unban">
 <button onclick="ban()">Ban</button>
 <button onclick="unban()">Unban</button>
 
 <br><br>
 
+<!-- 📊 ACTIONS -->
 <button onclick="load()">Load Keys</button>
+<button onclick="stats()">Stats</button>
 
+<h3>📊 DATA</h3>
 <pre id="data"></pre>
+
+<h3>📈 STATS</h3>
+<pre id="stats"></pre>
 
 <script>
 const URL = "https://admin-pannel-gi9e.onrender.com";
 
+// 🔑 CREATE KEY
 async function createKey() {
   await fetch(URL + "/create", {
     method:"POST",
-    headers:{"Content-Type":"application/json"},
+    headers:{
+      "Content-Type":"application/json",
+      "x-admin-pass": document.getElementById("pass").value
+    },
     body: JSON.stringify({
       key: document.getElementById("key").value,
       days: document.getElementById("days").value
     })
   });
-  alert("Key Created");
+  alert("Key Created ✅");
 }
 
+// 🚫 BAN
 async function ban() {
   await fetch(URL + "/ban", {
     method:"POST",
-    headers:{"Content-Type":"application/json"},
+    headers:{
+      "Content-Type":"application/json",
+      "x-admin-pass": document.getElementById("pass").value
+    },
     body: JSON.stringify({
       key: document.getElementById("banKey").value
     })
   });
-  alert("Banned");
+  alert("Banned 🚫");
 }
 
+// ✅ UNBAN
 async function unban() {
   await fetch(URL + "/unban", {
     method:"POST",
-    headers:{"Content-Type":"application/json"},
+    headers:{
+      "Content-Type":"application/json",
+      "x-admin-pass": document.getElementById("pass").value
+    },
     body: JSON.stringify({
       key: document.getElementById("banKey").value
     })
   });
-  alert("Unbanned");
+  alert("Unbanned ✅");
 }
 
+// 📊 LOAD KEYS
 async function load() {
-  const res = await fetch(URL + "/keys");
+  const res = await fetch(URL + "/keys", {
+    headers:{
+      "x-admin-pass": document.getElementById("pass").value
+    }
+  });
   const data = await res.json();
   document.getElementById("data").innerText = JSON.stringify(data, null, 2);
+}
+
+// 📈 STATS
+async function stats() {
+  const res = await fetch(URL + "/stats", {
+    headers:{
+      "x-admin-pass": document.getElementById("pass").value
+    }
+  });
+  const data = await res.json();
+  document.getElementById("stats").innerText = JSON.stringify(data, null, 2);
 }
 </script>
 
