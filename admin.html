@@ -2,86 +2,130 @@
 <html>
 <head>
   <title>ROHIT OWNER PANEL 🔥</title>
+
   <style>
     body {
-      background: #0d0d0d;
-      color: white;
+      margin: 0;
+      padding: 0;
       font-family: Arial;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: white;
       text-align: center;
     }
 
-    input, button {
-      padding: 10px;
-      margin: 5px;
-      border-radius: 8px;
-      border: none;
+    h1 {
+      margin-top: 20px;
+      font-size: 28px;
     }
 
-    button {
-      background: #00c3ff;
-      color: black;
+    .container {
+      width: 90%;
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      backdrop-filter: blur(15px);
+      box-shadow: 0 0 30px rgba(0,255,255,0.2);
+    }
+
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 8px;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    .btn {
+      width: 90%;
+      padding: 12px;
+      margin: 8px;
+      border-radius: 12px;
+      border: none;
       font-weight: bold;
       cursor: pointer;
+      color: white;
+
+      background: linear-gradient(45deg, #00c6ff, #0072ff);
+      box-shadow: 0 0 10px #00c6ff;
+      transition: 0.2s;
     }
 
-    button:hover {
-      background: #00ffcc;
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px #00ffff;
+    }
+
+    .danger {
+      background: linear-gradient(45deg, #ff416c, #ff4b2b);
+      box-shadow: 0 0 10px #ff416c;
+    }
+
+    .success {
+      background: linear-gradient(45deg, #00ff99, #00cc66);
+      box-shadow: 0 0 10px #00ff99;
     }
 
     pre {
       text-align: left;
-      background: #111;
+      background: rgba(0,0,0,0.5);
       padding: 10px;
       border-radius: 10px;
+      max-height: 250px;
       overflow: auto;
-      max-height: 300px;
+      font-size: 12px;
     }
   </style>
 </head>
 
 <body>
 
-<h2>🔥 ROHIT OWNER ADMIN PANEL</h2>
+<h1>🔥 ROHIT OWNER PANEL</h1>
 
-<!-- 🔐 PASSWORD -->
-<input id="pass" placeholder="Admin Password">
+<div class="container">
 
-<br><br>
+  <!-- 🔐 PASSWORD -->
+  <input id="pass" placeholder="Admin Password">
 
-<!-- 🔑 CREATE KEY -->
-<input id="key" placeholder="Enter Key">
-<input id="days" placeholder="Days">
-<button onclick="createKey()">Create Key</button>
+  <!-- 🔑 CREATE -->
+  <input id="key" placeholder="Enter Key">
+  <input id="days" placeholder="Days">
+  <button class="btn" onclick="createKey()">Create Key 🔑</button>
 
-<br><br>
+  <!-- 🚫 BAN -->
+  <input id="banKey" placeholder="Key">
+  <button class="btn danger" onclick="ban()">Ban 🚫</button>
+  <button class="btn success" onclick="unban()">Unban ✅</button>
 
-<!-- 🚫 BAN / UNBAN -->
-<input id="banKey" placeholder="Key to ban/unban">
-<button onclick="ban()">Ban</button>
-<button onclick="unban()">Unban</button>
+  <!-- 📊 ACTION -->
+  <button class="btn" onclick="load()">Load Keys 📊</button>
+  <button class="btn" onclick="stats()">Stats 📈</button>
 
-<br><br>
+  <h3>📊 DATA</h3>
+  <pre id="data"></pre>
 
-<!-- 📊 ACTIONS -->
-<button onclick="load()">Load Keys</button>
-<button onclick="stats()">Stats</button>
+  <h3>📈 STATS</h3>
+  <pre id="stats"></pre>
 
-<h3>📊 DATA</h3>
-<pre id="data"></pre>
-
-<h3>📈 STATS</h3>
-<pre id="stats"></pre>
+</div>
 
 <script>
 const URL = "https://admin-pannel-gi9e.onrender.com";
 
-// 🔑 CREATE KEY
-async function createKey() {
+function getPass(){
+  return document.getElementById("pass").value;
+}
+
+// 🔑 CREATE
+async function createKey(){
   await fetch(URL + "/create", {
     method:"POST",
     headers:{
       "Content-Type":"application/json",
-      "x-admin-pass": document.getElementById("pass").value
+      "x-admin-pass": getPass()
     },
     body: JSON.stringify({
       key: document.getElementById("key").value,
@@ -92,12 +136,12 @@ async function createKey() {
 }
 
 // 🚫 BAN
-async function ban() {
+async function ban(){
   await fetch(URL + "/ban", {
     method:"POST",
     headers:{
       "Content-Type":"application/json",
-      "x-admin-pass": document.getElementById("pass").value
+      "x-admin-pass": getPass()
     },
     body: JSON.stringify({
       key: document.getElementById("banKey").value
@@ -107,12 +151,12 @@ async function ban() {
 }
 
 // ✅ UNBAN
-async function unban() {
+async function unban(){
   await fetch(URL + "/unban", {
     method:"POST",
     headers:{
       "Content-Type":"application/json",
-      "x-admin-pass": document.getElementById("pass").value
+      "x-admin-pass": getPass()
     },
     body: JSON.stringify({
       key: document.getElementById("banKey").value
@@ -121,26 +165,28 @@ async function unban() {
   alert("Unbanned ✅");
 }
 
-// 📊 LOAD KEYS
-async function load() {
+// 📊 LOAD
+async function load(){
   const res = await fetch(URL + "/keys", {
     headers:{
-      "x-admin-pass": document.getElementById("pass").value
+      "x-admin-pass": getPass()
     }
   });
   const data = await res.json();
-  document.getElementById("data").innerText = JSON.stringify(data, null, 2);
+  document.getElementById("data").innerText =
+    JSON.stringify(data, null, 2);
 }
 
 // 📈 STATS
-async function stats() {
+async function stats(){
   const res = await fetch(URL + "/stats", {
     headers:{
-      "x-admin-pass": document.getElementById("pass").value
+      "x-admin-pass": getPass()
     }
   });
   const data = await res.json();
-  document.getElementById("stats").innerText = JSON.stringify(data, null, 2);
+  document.getElementById("stats").innerText =
+    JSON.stringify(data, null, 2);
 }
 </script>
 
