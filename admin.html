@@ -1,47 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin Panel</title>
+  <title>ROHIT OWNER PANEL 🔥</title>
 </head>
+<body style="background:black;color:white;font-family:sans-serif">
 
-<body style="background:black;color:white;text-align:center;padding:50px;">
+<h2>🔥 ROHIT OWNER ADMIN PANEL</h2>
 
-<h1>Admin Panel</h1>
-
-<input id="key" placeholder="Enter Key"><br><br>
-<input id="days" type="number" placeholder="Days"><br><br>
-
+<input id="key" placeholder="Enter key">
+<input id="days" placeholder="Days">
 <button onclick="createKey()">Create Key</button>
 
-<p id="result"></p>
+<br><br>
+
+<input id="banKey" placeholder="Key to ban">
+<button onclick="ban()">Ban</button>
+<button onclick="unban()">Unban</button>
+
+<br><br>
+
+<button onclick="load()">Load Keys</button>
+
+<pre id="data"></pre>
 
 <script>
+const URL = "https://admin-pannel-gi9e.onrender.com";
+
 async function createKey() {
-  let key = document.getElementById("key").value;
-  let days = parseInt(document.getElementById("days").value);
+  await fetch(URL + "/create", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      key: document.getElementById("key").value,
+      days: document.getElementById("days").value
+    })
+  });
+  alert("Key Created");
+}
 
-  if (!key || !days) {
-    document.getElementById("result").innerText = "❌ Fill all fields";
-    return;
-  }
+async function ban() {
+  await fetch(URL + "/ban", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      key: document.getElementById("banKey").value
+    })
+  });
+  alert("Banned");
+}
 
-  try {
-    let res = await fetch("/create-key", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ key, days })
-    });
+async function unban() {
+  await fetch(URL + "/unban", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      key: document.getElementById("banKey").value
+    })
+  });
+  alert("Unbanned");
+}
 
-    let data = await res.json();
-
-    document.getElementById("result").innerText =
-      JSON.stringify(data);
-
-  } catch (err) {
-    document.getElementById("result").innerText = "❌ Server Error";
-  }
+async function load() {
+  const res = await fetch(URL + "/keys");
+  const data = await res.json();
+  document.getElementById("data").innerText = JSON.stringify(data, null, 2);
 }
 </script>
 
